@@ -1,5 +1,5 @@
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, BitsAndBytesConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, TextStreamer, BitsAndBytesConfig
 from langchain.llms import HuggingFacePipeline
 
 # default settings
@@ -22,12 +22,15 @@ model = AutoModelForCausalLM.from_pretrained(MODEL, quantization_config=bnb_conf
 model.eval()
 model.config.use_cache = True
 
+# creates a streamer for the model
+streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
 # creates a huggingface pipeline for langchain
 pipe = pipeline(
     'text-generation',
     model=model,
     tokenizer=tokenizer,
     max_new_tokens=MAX_NEW_TOKENS,
+    streamer=streamer,
     )
 chat = HuggingFacePipeline(pipeline=pipe)
 
